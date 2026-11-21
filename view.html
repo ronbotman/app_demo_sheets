@@ -32,12 +32,39 @@
       height: fit-content;
     }
 
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+
     h1 {
       font-size: 1.75rem;
       font-weight: 700;
-      margin-bottom: 24px;
       color: #0f172a;
-      text-align: center;
+    }
+
+    .btn-logout {
+      padding: 8px 16px;
+      background-color: #ef4444;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.05s ease;
+      white-space: nowrap;
+    }
+
+    .btn-logout:hover {
+      background-color: #dc2626;
+    }
+
+    .btn-logout:active {
+      transform: scale(0.98);
     }
 
     #list {
@@ -111,21 +138,38 @@
 </head>
 <body>
   <div class="container">
-    <h1>All submissions</h1>
+    <div class="top-bar">
+      <h1>All submissions</h1>
+      <button id="logoutBtn" type="button" class="btn-logout">Log out</button>
+    </div>
     <ul id="list"></ul>
   </div>
 
   <script>
     const URL = "https://script.google.com/macros/s/AKfycbw5eW00Pyr0VahIhn12rM8C7yQcUzCTsb8NznxwIC3T-d2BD4QWD8HuczkJ4EZcuLkcwg/exec";
 
+    // Immediate token verification
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.href = "login.html";
+    }
+
+    // Log out handler
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+
     async function loadSubmissions() {
       const list = document.getElementById("list");
       try {
-        const res = await fetch(URL);
+        const params = new URLSearchParams({ action: "getContacts", token });
+        const res = await fetch(URL + "?" + params.toString());
         const data = await res.json();
 
-        if (!data || !data.ok) {
-          list.innerHTML = '<li class="error-msg">Couldn\'t load — try again later</li>';
+        if (!data.ok) {
+          localStorage.removeItem("token");
+          window.location.href = "login.html";
           return;
         }
 
@@ -156,7 +200,7 @@
           if (contact.phone) {
             const phoneEl = document.createElement("span");
             phoneEl.className = "submission-phone";
-            phoneEl.textContent = ` ${contact.phone}`;
+            phoneEl.textContent = ` · ${contact.phone}`;
             header.appendChild(phoneEl);
           }
 
@@ -179,7 +223,9 @@
       }
     }
 
-    loadSubmissions();
+    if (token) {
+      loadSubmissions();
+    }
   </script>
 </body>
 </html>
