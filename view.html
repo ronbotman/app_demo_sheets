@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All submissions</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px;
+    }
+
+    .container {
+      background: #ffffff;
+      width: 100%;
+      max-width: 640px;
+      padding: 32px 28px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+      height: fit-content;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #0f172a;
+      text-align: center;
+    }
+
+    #list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .submission-item {
+      padding: 16px 20px;
+      border-radius: 8px;
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      transition: box-shadow 0.15s ease;
+    }
+
+    .submission-item:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .submission-header {
+      font-size: 1rem;
+      color: #334155;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .submission-header strong {
+      color: #0f172a;
+    }
+
+    .submission-email {
+      color: #64748b;
+    }
+
+    .submission-phone {
+      color: #475569;
+    }
+
+    .submission-message {
+      color: #1e293b;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 8px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .submission-date {
+      display: block;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      margin-top: 6px;
+    }
+
+    .empty-msg,
+    .error-msg {
+      text-align: center;
+      padding: 24px 0;
+      font-size: 1rem;
+      color: #64748b;
+      list-style: none;
+    }
+
+    .error-msg {
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>All submissions</h1>
+    <ul id="list"></ul>
+  </div>
+
+  <script>
+    const URL = "https://script.google.com/macros/s/AKfycbw5eW00Pyr0VahIhn12rM8C7yQcUzCTsb8NznxwIC3T-d2BD4QWD8HuczkJ4EZcuLkcwg/exec";
+
+    async function loadSubmissions() {
+      const list = document.getElementById("list");
+      try {
+        const res = await fetch(URL);
+        const data = await res.json();
+
+        if (!data || !data.ok) {
+          list.innerHTML = '<li class="error-msg">Couldn\'t load — try again later</li>';
+          return;
+        }
+
+        if (!data.contacts || data.contacts.length === 0) {
+          list.innerHTML = '<li class="empty-msg">No submissions yet</li>';
+          return;
+        }
+
+        list.innerHTML = "";
+        data.contacts.forEach((contact) => {
+          const li = document.createElement("li");
+          li.className = "submission-item";
+
+          const header = document.createElement("div");
+          header.className = "submission-header";
+
+          const nameEl = document.createElement("strong");
+          nameEl.textContent = contact.name || "";
+          header.appendChild(nameEl);
+
+          if (contact.email) {
+            const emailEl = document.createElement("span");
+            emailEl.className = "submission-email";
+            emailEl.textContent = ` (${contact.email})`;
+            header.appendChild(emailEl);
+          }
+
+          if (contact.phone) {
+            const phoneEl = document.createElement("span");
+            phoneEl.className = "submission-phone";
+            phoneEl.textContent = ` ${contact.phone}`;
+            header.appendChild(phoneEl);
+          }
+
+          const msgEl = document.createElement("p");
+          msgEl.className = "submission-message";
+          msgEl.textContent = contact.message || "";
+
+          const dateEl = document.createElement("small");
+          dateEl.className = "submission-date";
+          dateEl.textContent = contact.created_at || "";
+
+          li.appendChild(header);
+          li.appendChild(msgEl);
+          li.appendChild(dateEl);
+
+          list.appendChild(li);
+        });
+      } catch (err) {
+        list.innerHTML = '<li class="error-msg">Couldn\'t load — try again later</li>';
+      }
+    }
+
+    loadSubmissions();
+  </script>
+</body>
+</html>
